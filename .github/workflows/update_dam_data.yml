@@ -1,0 +1,32 @@
+name: Update Dam Data Daily
+
+on:
+  schedule:
+    - cron: '30 4 * * *'  # Runs every day at 4:30 AM UTC (10:00 AM IST)
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Data Scraper
+        run: node dam_details_fetcher.js
+
+      - name: Commit and Push if Changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add live.json
+          git diff --cached --quiet || git commit -m "🔄 Daily dam data update"
+          git push
